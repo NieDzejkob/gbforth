@@ -3,7 +3,7 @@
 require ./cartridge.fs
 
 :m zeroes, ( n -- )
-  0 [host] DO [target] 0 c, [host] LOOP [target] ;
+  0 [host] DO [target] [ 5 5 - ]L c, [host] LOOP [target] ;
 
 [asm]
 
