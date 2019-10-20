@@ -28,12 +28,31 @@ require ./xname.fs
 : xcompiling?
   current-node -1 <> ;
 
+make-ir constant unreachable-node
+
+: unreachable?
+  current-node unreachable-node = ;
+
+ : .current-word
+  source drop
+  0 >in @ 2 - ?DO
+    dup I + c@ BL = IF
+      dup I + 1+
+      >in @ I - 2 - type
+      LEAVE
+    THEN
+    -1 +LOOP
+  drop ;
+
+
 : xliteral, { n -- }
+  unreachable? if cr ." Unreachable code: " .current-word cr then
   current-node
   insert-node IR_NODE_LITERAL ::type n ::value
   to current-node ;
 
 : xcompile, { xname -- }
+  unreachable? if cr ." Unreachable code: " .current-word cr then
   current-node
   insert-node IR_NODE_CALL ::type xname ::value
   to current-node ;
@@ -172,7 +191,7 @@ create user-name 128 chars allot
     ir 0 create-xname
     type WORD_NONAME = if
       xlatest xname>addr
-    then    
+    then
   then
 ;
 
@@ -199,8 +218,6 @@ create user-name 128 chars allot
 
 ( Control Flow )
 
-make-ir constant unreachable
-
 \ Create a unresolved mark.
 : @there ( -- mark )
   make-ir ;
@@ -211,7 +228,7 @@ make-ir constant unreachable
   current-node
   insert-node IR_NODE_CONTINUE ::type mark ::value
   drop
-  unreachable to current-node ;
+  unreachable-node to current-node ;
 
 \ Compile a jump to a mark if the top of the stack is zero.
 : 0branch, { mark -- }
